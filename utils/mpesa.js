@@ -17,9 +17,18 @@ const getAccessToken = async () => {
   return response.data.access_token;
 };
 
+// Convert USD to KSH
+const convertToKSH = (usdAmount) => {
+  const exchangeRate = 130; // 1 USD = 130 KSH
+  return Math.round(parseFloat(usdAmount) * exchangeRate);
+};
+
 // Trigger STK Push
-const stkPush = async (phone, amount) => {
+const stkPush = async (phone, usdAmount) => {
   const access_token = await getAccessToken();
+  
+  // Convert USD to KSH
+  const kshAmount = convertToKSH(usdAmount);
   
   const timestamp = new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14);
   const passkey = process.env.MPESA_PASSKEY || 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';
@@ -33,13 +42,13 @@ const stkPush = async (phone, amount) => {
     Password: password,
     Timestamp: timestamp,
     TransactionType: "CustomerPayBillOnline",
-    Amount: "1", // Use 1 for testing
+    Amount: kshAmount.toString(),
     PartyA: phone,
     PartyB: business_short_code,
     PhoneNumber: phone,
     CallBackURL: `${process.env.CALLBACK_URL || 'https://bookhive-backend-zdho.onrender.com'}/api/mpesa/callback`,
     AccountReference: "BookHive Payment",
-    TransactionDesc: "Payment for books"
+    TransactionDesc: `Payment for books - $${usdAmount} (KSH ${kshAmount})`
   };
   
   const headers = {
@@ -50,7 +59,7 @@ const stkPush = async (phone, amount) => {
   const url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest";
   const response = await axios.post(url, payload, { headers });
   
-  return response.data;
+  return { ...response.data, kshAmount, usdAmount };
 };
 
-module.exports = { getAccessToken, stkPush };
+module.exports = { getAccessToken, stkPush, convertToKSH };

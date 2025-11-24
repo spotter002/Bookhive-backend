@@ -1,7 +1,7 @@
 const express = require('express');
 const Cart = require('../models/Cart');
 const Order = require('../models/Order');
-const { stkPush } = require('../utils/mpesa');
+const { stkPush, convertToKSH } = require('../utils/mpesa');
 const auth = require('../middleware/auth');
 
 const router = express.Router();
@@ -39,9 +39,11 @@ router.post('/pay', auth, async (req, res) => {
       
       res.json({
         success: true,
-        message: 'An MPESA Prompt has been sent to Your Phone, Please Check & Complete Payment',
+        message: `An MPESA Prompt has been sent to Your Phone for KSH ${mpesaResponse.kshAmount} ($${mpesaResponse.usdAmount}). Please Check & Complete Payment`,
         orderId: order._id,
-        checkoutRequestId: mpesaResponse.CheckoutRequestID
+        checkoutRequestId: mpesaResponse.CheckoutRequestID,
+        usdAmount: mpesaResponse.usdAmount,
+        kshAmount: mpesaResponse.kshAmount
       });
     } else {
       res.status(400).json({ message: 'Payment initiation failed' });
@@ -60,7 +62,7 @@ router.post('/payment', async (req, res) => {
     const mpesaResponse = await stkPush(phone, amount);
     
     res.json({
-      message: 'An MPESA Prompt has been sent to Your Phone, Please Check & Complete Payment',
+      message: `An MPESA Prompt has been sent to Your Phone for KSH ${mpesaResponse.kshAmount} ($${mpesaResponse.usdAmount}). Please Check & Complete Payment`,
       response: mpesaResponse
     });
   } catch (error) {

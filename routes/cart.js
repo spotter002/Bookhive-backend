@@ -34,8 +34,20 @@ router.post('/add', auth, async (req, res) => {
     }
 
     const existingItem = cart.items.find(item => item.bookId.toString() === bookId);
+    const currentQuantity = existingItem ? existingItem.quantity : 0;
+    const newQuantity = currentQuantity + quantity;
+    
+    // Check if new quantity exceeds available copies
+    if (newQuantity > book.copiesAvailable) {
+      return res.status(400).json({ 
+        message: `Cannot add ${quantity} items. Only ${book.copiesAvailable - currentQuantity} copies available.`,
+        availableCopies: book.copiesAvailable,
+        currentInCart: currentQuantity
+      });
+    }
+
     if (existingItem) {
-      existingItem.quantity += quantity;
+      existingItem.quantity = newQuantity;
     } else {
       cart.items.push({ bookId, quantity });
     }
