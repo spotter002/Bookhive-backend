@@ -39,7 +39,7 @@ router.post('/pay', auth, async (req, res) => {
       
       res.json({
         success: true,
-        message: 'Payment initiated. Check your phone for M-Pesa prompt.',
+        message: 'An MPESA Prompt has been sent to Your Phone, Please Check & Complete Payment',
         orderId: order._id,
         checkoutRequestId: mpesaResponse.CheckoutRequestID
       });
@@ -49,6 +49,23 @@ router.post('/pay', auth, async (req, res) => {
   } catch (error) {
     console.error('Payment error:', error);
     res.status(500).json({ message: 'Payment failed' });
+  }
+});
+
+// Simple payment endpoint (alternative)
+router.post('/payment', async (req, res) => {
+  try {
+    const { phone, amount } = req.body;
+    
+    const mpesaResponse = await stkPush(phone, amount);
+    
+    res.json({
+      message: 'An MPESA Prompt has been sent to Your Phone, Please Check & Complete Payment',
+      response: mpesaResponse
+    });
+  } catch (error) {
+    console.error('Payment error:', error);
+    res.status(500).json({ message: 'Payment failed', error: error.message });
   }
 });
 
