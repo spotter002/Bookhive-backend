@@ -8,4 +8,6 @@ const messageSchema = new mongoose.Schema({
   read: { type: Boolean, default: false }
 });
 
+messageSchema.index({ chatId: 1, timestamp: 1 });
+
 module.exports = mongoose.model('Message', messageSchema);
