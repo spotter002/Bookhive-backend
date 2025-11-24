@@ -19,6 +19,7 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/cart', require('./routes/cart'));
 app.use('/api/mpesa', require('./routes/mpesa'));
+app.use('/api/chats', require('./routes/chats'));
 
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI)
