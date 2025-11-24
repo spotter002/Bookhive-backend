@@ -8,12 +8,15 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static('uploads'));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/books', require('./routes/books'));
 app.use('/api/swaps', require('./routes/swaps'));
 app.use('/api/messages', require('./routes/messages'));
+app.use('/api/users', require('./routes/users'));
+app.use('/api/upload', require('./routes/upload'));
 
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI)

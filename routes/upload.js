@@ -11,7 +11,7 @@ router.post('/image', auth, upload.single('image'), (req, res) => {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    const imageUrl = `https://bookhive-backend-zdho.onrender.com/uploads/${req.file.filename}`;
     res.json({ imageUrl });
   } catch (error) {
     res.status(500).json({ message: 'Upload failed' });
