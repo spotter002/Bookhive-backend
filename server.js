@@ -28,6 +28,9 @@ app.use('/api/cart', require('./routes/cart'));
 app.use('/api/mpesa', require('./routes/mpesa'));
 app.use('/api/chats', require('./routes/chats'));
 
+// Make io available to routes
+app.set('io', io);
+
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('MongoDB connected'))
@@ -68,10 +71,18 @@ io.on('connection', (socket) => {
         read: false
       });
 
-      await Chat.findByIdAndUpdate(chatId, { updatedAt: new Date() });
+      const chat = await Chat.findByIdAndUpdate(chatId, { updatedAt: new Date() }, { new: true })
+        .populate('bookId')
+        .populate('participants', 'name email');
       
       const populatedMessage = await Message.findById(message._id).populate('senderId', 'name');
+      
       io.to(chatId).emit('receive_message', populatedMessage);
+      
+      // Update chat list for all participants
+      chat.participants.forEach(participant => {
+        io.emit('chat_list_update', { userId: participant._id.toString(), chat });
+      });
     } catch (err) {
       console.error('send_message error:', err);
     }

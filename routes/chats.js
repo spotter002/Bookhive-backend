@@ -24,12 +24,22 @@ router.post('/for-book/:bookId', auth, async (req, res) => {
       participants: { $all: [ownerId, requesterId] } 
     }).populate('bookId').populate('participants', 'name email');
 
+    let isNewChat = false;
     if (!chat) {
       chat = await Chat.create({ 
         bookId, 
         participants: [ownerId, requesterId] 
       });
       chat = await Chat.findById(chat._id).populate('bookId').populate('participants', 'name email');
+      isNewChat = true;
+    }
+
+    // If new chat, notify participants via Socket.IO
+    if (isNewChat && req.app.get('io')) {
+      const io = req.app.get('io');
+      chat.participants.forEach(participant => {
+        io.emit('new_chat', { userId: participant._id.toString(), chat });
+      });
     }
 
     res.json(chat);
